@@ -1,4 +1,4 @@
-# A Google Playground
+# A Google Cloud Playground
 
 A repository containing small random scripts that I use to manage some GCP infrastructure chores, notes, etc. Mostly Elixir of course 🍺
 
