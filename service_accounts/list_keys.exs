@@ -7,11 +7,9 @@
 #
 # And run me with: `elixir list_keys.exs`
 
-Mix.install([
-  :req,
-  :jason,
-  :table_rex
-])
+Mix.install([:req, :jason, :table_rex])
+
+alias TableRex.Table
 
 api_key = System.get_env("ACCESS_TOKEN")
 project_id = System.get_env("GCLOUD_PROJECT_ID", "my_gcp_project")
@@ -39,8 +37,7 @@ with %{body: %{"accounts" => accounts}} <- Req.get!(service_accounts_url, header
                             "validBeforeTime" => valid_before
                           } ->
           [key] = Regex.run(~r{[^/]*$}, name)
-
-          %{key: key, type: type, valid_from: valid_after, valid_to: valid_before}
+          [key, type, valid_after, valid_before]
         end)
 
       Map.put(acc, "#{email} (#{name})", account_keys)
@@ -48,8 +45,10 @@ with %{body: %{"accounts" => accounts}} <- Req.get!(service_accounts_url, header
 
   for {sa, sa_keys} <- service_accounts do
     sa_keys
-    |> Enum.reduce([], &[Map.values(&1) | &2])
-    |> TableRex.quick_render!(["Key", "Type", "Valid from", "Valid to"], sa)
+    |> Table.new(["Key", "Type", "Valid from", "Valid to"], sa)
+    |> Table.put_column_meta(1..4, align: :center)
+    |> Table.sort(1, :desc)
+    |> Table.render!()
     |> IO.puts()
   end
 else
